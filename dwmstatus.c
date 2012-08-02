@@ -184,10 +184,7 @@ getbattery(char *base)
 	return smprintf("%.0f", ((float)remcap / (float)descap) * 100);
 }
 
-#define VOLCMD "echo $(amixer get Master | tail -n1 | sed -r 's/.*\\[(.*)%\\].*/\\1/')%"
 #define MEMCMD "echo $(free -m | awk '/buffers\\/cache/ {print $3}')M"
-#define RXCMD "cat /sys/class/net/eth0/statistics/rx_bytes"
-#define TXCMD "cat /sys/class/net/eth0/statistics/tx_bytes"
 #define MAILDIR_NEW "/home/sajuuk/mail/GMail_A/INBOX/new"
 
 int
@@ -198,15 +195,7 @@ main(void)
     char *mem;
 	char *tmutc;
 	char *tmbln;
-    char *rx_old, *rx_now, *tx_old, *tx_now;
     char *mail;
-    char *vol;
-    int rx_rate,tx_rate;
-
-    rx_old = runcmd(RXCMD);
-    tx_old = runcmd(TXCMD);
-
-
 
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "dwmstatus: cannot open display.\n");
@@ -219,23 +208,14 @@ main(void)
 		tmbln = mktimes("KW %W %a %d %b %H:%M %Z %Y", tzberlin);
         mail = check_mail(MAILDIR_NEW);
         mem = runcmd("echo $(free -m | awk '/buffers\\/cache/ {print $3}')M");
-        vol = runcmd(VOLCMD);
-       	rx_now = runcmd(RXCMD);
-        tx_now = runcmd(TXCMD);
-        rx_rate = (atoi(rx_now) - atoi(rx_old)) / 1024;
-        tx_rate = (atoi(tx_now) - atoi(tx_old)) / 1024;
-		status = smprintf("%s | Volume: %s | Mail: %s | Net: %dK %dK | Mem: %s | UTC: %s | Berlin: %s",
-				avgs, vol, mail, rx_rate, tx_rate, mem, tmutc, tmbln);
+		status = smprintf("%s | Mail: %s | Mem: %s | UTC: %s | Berlin: %s",
+				avgs, mail, mem, tmutc, tmbln);
 		setstatus(status);
-       	strcpy(rx_old, rx_now);
-        strcpy(tx_old, tx_now);
 		free(avgs);
         free(mem);
 		free(tmutc);
 		free(tmbln);
 		free(status);
-        free(rx_now);
-        free(tx_now);
         free(mail);
 	}
 
